@@ -1,0 +1,44 @@
+---
+  - hosts: default
+    become: true
+
+    tasks:
+      - name: update the apt-get
+        apt:
+          update_cache: yes
+
+      - name: Add an Apt signing key to a specific keyring file
+        apt_key:
+          url: https://artifacts.elastic.co/GPG-KEY-elasticsearch
+          state: present
+          
+      - name: Install transport
+        apt:
+          name: "apt-transport-https"
+          state: present
+
+      - name: Adding APT repository
+        apt_repository:
+          repo: deb https://artifacts.elastic.co/packages/8.x/apt stable main
+          state: present
+          filename: elastic-8.x.list
+          update_cache: yes
+
+      - name: Update repositories cache and install Logstash
+        apt:
+          name: logstash
+          update_cache: yes
+
+      - name: Enabling logstash service
+        systemd:
+          name: logstash
+          enabled: yes
+          daemon_reload: yes
+# Start Kibana service
+      - name: Starting elastic search service
+        systemd:
+          name: logstash
+          state: started
+          
+      - name: Ensure elastic serach is running
+        systemd: state=started name=logstash
